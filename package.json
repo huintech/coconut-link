@@ -1,13 +1,13 @@
 {
-  "name": "openblock-link",
-  "version": "0.2.0",
-  "description": "Porvide local hardware function to openblock",
+  "name": "scratch-link",
+  "version": "1.0.0",
+  "description": "Provide local hardware function to scratch",
   "main": "src/index.js",
   "scripts": {
     "fetch": "rimraf tools firmwares && node script/download-tools.js && node script/download-firmwares.js",
-    "start": "rimraf ../.openblockData/link && node test/start-server.js --log-level=info",
-    "start:debug": "rimraf ../.openblockData/link && node test/start-server.js --log-level=debug",
-    "clean": "rimraf ../.openblockData/link tools firmwares",
+    "start": "rimraf ../.coconutData/link && node test/start-server.js --log-level=info",
+    "start:debug": "rimraf ../.coconutData/link && node test/start-server.js --log-level=debug",
+    "clean": "rimraf ../.coconutData/link tools firmwares",
     "docs": "jsdoc -c .jsdoc.json",
     "lint": "eslint ./src",
     "test": "",
@@ -15,10 +15,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/openblockcc/openblock-link.git"
+    "url": "git+https://github.com/huintech/scratch-link.git"
   },
   "keywords": [
-    "openblock",
+    "coconut",
     "link",
     "microbit",
     "arduino",
@@ -27,14 +27,16 @@
     "ble",
     "serialport"
   ],
-  "author": "OpenBlock Team",
+  "author": "coconut",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/openblockcc/openblock-link/issues"
+    "url": "https://github.com/huintech/scratch-link/issues"
   },
-  "homepage": "https://github.com/openblockcc/openblock-link#readme",
+  "homepage": "https://github.com/huintech/scratch-link#readme",
   "dependencies": {
     "@abandonware/noble": "^1.9.2-10",
+    "noble-mac": "https://github.com/Timeular/noble-mac.git",
+    "os-locale": "^5.0.0",
     "ansi-string": "^0.2.1",
     "cli-color": "^2.0.1",
     "download-github-release": "^0.3.2",

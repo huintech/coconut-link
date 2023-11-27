@@ -3,8 +3,8 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
-const user = 'openblockcc';
-const repo = 'openblock-tools';
+const user = 'OttawaSTEM';
+const repo = 'scratch-arduino-tools';
 const outputdir = path.resolve('./tools');
 const leaveZipped = false;
 
@@ -25,8 +25,16 @@ const parseArgs = function () {
 
 const arch = parseArgs() || os.arch();
 
-const filterAsset = asset => (asset.name.indexOf(os.platform()) >= 0) &&
-    (asset.name.indexOf(arch) >= 0);
+// const filterAsset = asset => (asset.name.indexOf(os.platform()) >= 0) &&
+//     (asset.name.indexOf(arch) >= 0);
+
+const filterAsset = asset => {
+    if (process.platform === 'win32') {
+        return (asset.name.indexOf('Win') >= 0);
+    } else if (process.platform === 'darwin') {
+        return (asset.name.indexOf('Mac') >= 0);
+    }
+}
 
 if (!fs.existsSync(outputdir)) {
     fs.mkdirSync(outputdir, {recursive: true});

@@ -1,4 +1,4 @@
-# openblock-link
+# scratch-link
 [![Publish Npm Package](https://github.com/openblockcc/openblock-link/actions/workflows/publish-npm-package.yml/badge.svg)](https://github.com/openblockcc/openblock-link/actions/workflows/publish-npm-package.yml)
 ![](https://img.shields.io/github/license/openblockcc/openblock-link)
 
