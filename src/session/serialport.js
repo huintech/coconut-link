@@ -88,7 +88,7 @@ class SerialportSession extends Session {
             SerialPort.list().then(peripheral => {
                 this.onAdvertisementReceived(peripheral, filters);
             });
-        }, 100);
+        }, 1000);
     }
 
     onAdvertisementReceived (peripheral, filters) {

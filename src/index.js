@@ -47,8 +47,9 @@ const REOPEN_INTERVAL = 1000 * 1;
  * @readonly
  */
 const ROUTERS = {
-    '/coconut/ble': require('./session/ble'), // eslint-disable-line global-require
-    '/coconut/serialport': require('./session/serialport') // eslint-disable-line global-require
+    '/status': require('./session/link'),
+    '/scratch/ble': require('./session/ble'), // eslint-disable-line global-require
+    '/scratch/serialport': require('./session/serialport') // eslint-disable-line global-require
 };
 
 /**
@@ -77,7 +78,8 @@ class ScratchLink extends Emitter{
 
         this._port = DEFAULT_PORT;
         this._host = DEFAULT_HOST;
-        this._httpServer = http.createServer();
+        this._httpServer = new http.Server();
+        // this._httpServer = http.createServer();
         this._socketServer = new Server({server: this._httpServer});
 
         this._socketServer.on('connection', (socket, request) => {
@@ -122,6 +124,103 @@ class ScratchLink extends Emitter{
     }
 
     /**
+     * Initial and Check tools, libraries and firmware update.
+     */
+    async start () {
+        try {
+            // Download index.json
+            const repo = 'scratch-arduino-link';
+            const indexPath = path.resolve(this.toolsPath);
+            const filterAsset = asset => (asset.name.indexOf('index.json') >= 0);
+            await downloadRelease(user, repo, indexPath, filterRelease, filterAsset, leaveZipped)
+                .then(() => {
+                    console.log('index.json download complete.');
+                })
+                .catch(err => {
+                    console.error(err.message);
+                });
+            const linkPackages = await loadJsonFile(path.join(indexPath, 'index.json'));
+
+            // scratch-arduino-libraries
+            const librariesRepo = 'scratch-arduino-libraries';
+            const libraryPath = path.join(path.resolve(this.toolsPath), '/Arduino/libraries');
+            const oldLibraryVersionPath = path.join(libraryPath, 'library-version.json');
+            const oldLibraryVersion = await loadJsonFile(oldLibraryVersionPath);
+            for (const library of linkPackages['libraries']) {
+                if (!fs.existsSync(path.join(libraryPath, library['folderName']))) {
+                    const libraryFilterAsset = asset => (asset.name.indexOf(library['libraryName']) >= 0);
+                    await downloadRelease(user, librariesRepo, libraryPath, filterRelease, libraryFilterAsset, leaveZipped)
+                        .then(() => {
+                            console.log(library['fileName'], ' download complete.');
+                        }).catch(err => {
+                            console.error(err.message);
+                        });
+                } else {
+                    if (!oldLibraryVersion.hasOwnProperty(library['libraryName']) || (library['version'] > oldLibraryVersion[library['libraryName']])) {
+                        fs.rmdir(path.join(libraryPath, library['folderName']), { recursive: true }, (error) => {console.error(error);});
+                        const libraryFilterAsset = asset => (asset.name.indexOf(library['libraryName']) >= 0);
+                        await downloadRelease(user, librariesRepo, libraryPath, filterRelease, libraryFilterAsset, leaveZipped)
+                            .then(() => {
+                                console.log(library['fileName'], ' download complete.');
+                            }).catch(err => {
+                                console.error(err.message);
+                            });
+                    }
+                }
+            }
+            let libraryData = {};      // Save current arduino library version
+            for (const library of linkPackages['libraries']) {
+                libraryData[library['libraryName']] = library['version'];
+            }
+            fs.writeFileSync(oldLibraryVersionPath, JSON.stringify(libraryData));
+
+            // scratch-arduino-firmwares
+            const firmwaresRepo = 'scratch-arduino-firmwares';
+            const firmwarePath = path.join(path.resolve(this.toolsPath), '../firmwares');
+            const oldFirmwareVersionPath = path.join(firmwarePath, 'firmware-version.json');
+            if (!fs.existsSync(firmwarePath)) {
+                fs.mkdirSync(firmwarePath, {recursive: true});
+            }
+            if (!fs.existsSync(oldFirmwareVersionPath)) {
+                for (const firmware of linkPackages['firmwares']) {
+                    const libraryFilterAsset = asset => (asset.name.indexOf(firmware['firmwareName']) >= 0);
+                    await downloadRelease(user, firmwaresRepo, firmwarePath, filterRelease, libraryFilterAsset, leaveZipped)
+                        .then(() => {
+                            console.log(firmware['fileName'], ' download complete.');
+                        }).catch(err => {
+                            console.error(err.message);
+                        });
+                }
+            } else {
+                const oldFirmwareVersion = await loadJsonFile(oldFirmwareVersionPath);
+                for (const firmware of linkPackages['firmwares']) {
+                    if (!oldFirmwareVersion.hasOwnProperty(firmware['firmwareName']) || (firmware['version'] > oldFirmwareVersion[firmware['firmwareName']])) {
+                        const libraryFilterAsset = asset => (asset.name.indexOf(firmware['firmwareName']) >= 0);
+                        await downloadRelease(user, firmwaresRepo, firmwarePath, filterRelease, libraryFilterAsset, leaveZipped)
+                            .then(() => {
+                                console.log(firmware['fileName'], ' download complete.');
+                            }).catch(err => {
+                                console.error(err.message);
+                            });
+                    }
+                }
+            }
+            let firmwareData = {};      // Save current firmware version
+            for (const firmware of linkPackages['firmwares']) {
+                firmwareData[firmware['firmwareName']] = firmware['version'];
+            }
+            fs.writeFileSync(oldFirmwareVersionPath, JSON.stringify(firmwareData));
+        } catch(err) {
+            dialog.showMessageBox({
+                title: 'Scratch COCONUT Link',
+                type: 'error',
+                buttons: ['Close'],
+                message: 'Update error - ' + err.message
+            });
+        }
+    }
+
+    /**
      * Start a server listening for connections.
      * @param {number} port - the port to listen.
      * @param {string} host - the host to listen.
@@ -158,9 +257,13 @@ class ScratchLink extends Emitter{
             });
         });
 
-        this._httpServer.listen(this._port, '0.0.0.0', () => {
+        // this._httpServer.listen(this._port, '0.0.0.0', () => {
+        //     this.emit('ready');
+        //     console.info(clc.green(`Scratch link server start successfully, socket listen on: http://${this._host}:${this._port}`));
+        // });
+        this._httpServer.listen(this._port, '127.0.0.1', () => {
             this.emit('ready');
-            console.info(clc.green(`Scratch link server start successfully, socket listen on: http://${this._host}:${this._port}`));
+            console.log('socket server listen: ', `http://127.0.0.1:${this._port}`);
         });
     }
 }
