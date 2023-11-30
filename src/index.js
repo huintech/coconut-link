@@ -129,7 +129,7 @@ class ScratchLink extends Emitter{
     async start () {
         try {
             // Download index.json
-            const repo = 'scratch-arduino-link';
+            const repo = 'coconut-link';
             const indexPath = path.resolve(this.toolsPath);
             const filterAsset = asset => (asset.name.indexOf('index.json') >= 0);
             await downloadRelease(user, repo, indexPath, filterRelease, filterAsset, leaveZipped)

@@ -1,5 +1,5 @@
 {
-  "name": "scratch-link",
+  "name": "@huintech/coconut-link",
   "version": "1.0.0",
   "description": "Provide local hardware function to scratch",
   "main": "src/index.js",
@@ -15,24 +15,20 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/huintech/scratch-link.git"
+    "url": "git+https://github.com/huintech/coconut-link.git"
   },
   "keywords": [
     "coconut",
     "link",
-    "microbit",
-    "arduino",
-    "nodejs",
     "scratch3.0",
-    "ble",
     "serialport"
   ],
   "author": "coconut",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/huintech/scratch-link/issues"
+    "url": "https://github.com/huintech/coconut-link/issues"
   },
-  "homepage": "https://github.com/huintech/scratch-link#readme",
+  "homepage": "https://github.com/huintech/coconut-link#readme",
   "dependencies": {
     "@abandonware/noble": "^1.9.2-10",
     "noble-mac": "https://github.com/Timeular/noble-mac.git",
