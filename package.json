@@ -1,6 +1,6 @@
 {
   "name": "@huintech/coconut-link",
-  "version": "1.0.0",
+  "version": "0.8.0",
   "description": "Provide local hardware function to scratch",
   "main": "src/index.js",
   "scripts": {
@@ -16,6 +16,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/huintech/coconut-link.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
   },
   "keywords": [
     "coconut",
