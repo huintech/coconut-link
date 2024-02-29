@@ -4,6 +4,7 @@ const ansi = require('ansi-string');
 const Session = require('./session');
 const Arduino = require('../upload/arduino');
 const Microbit = require('../upload/microbit');
+const Coconut = require('../upload/coconut');
 const usbId = require('../lib/usb-id');
 
 const PERIPHERAL_UNPLUG_CHECK_INTERVAL = 100;
@@ -304,7 +305,39 @@ class SerialportSession extends Session {
 
         const {baudRate} = this.peripheralParams.peripheralConfig.config;
 
+        // define device to upload firmware
         switch (config.type) {
+        case 'coconut':
+            this.tool = new Coconut(this.peripheral.path, config, this.userDataPath,
+                this.toolsPath, this.sendstd.bind(this), this.sendRemoteRequest.bind(this));
+
+            try {
+                this.sendRemoteRequest('setUploadAbortEnabled', true);
+                const exitCode = await this.tool.build(code, library);
+                if (exitCode === 'Success') {
+                    try {
+                        this.sendstd(`${ansi.clear}Disconnect serial port\n`);
+                        await this.disconnect();
+                        this.sendstd(`${ansi.clear}Disconnected successfully, flash program starting...\n`);
+                        const flashExitCode = await this.tool.flash();
+                        await this.connect(this.peripheralParams, true);
+                        this.sendRemoteRequest('uploadSuccess', {aborted: flashExitCode === 'Aborted'});
+                    } catch (err) {
+                        this.sendRemoteRequest('uploadError', {
+                            message: ansi.red + err.message
+                        });
+                        // if error in flash step. It is considered that the device has been removed.
+                        this.sendRemoteRequest('peripheralUnplug', null);
+                    }
+                } else if (exitCode === 'Aborted') {
+                    this.sendRemoteRequest('uploadSuccess', {aborted: true});
+                }
+            } catch (err) {
+                this.sendRemoteRequest('uploadError', {
+                    message: ansi.red + err.message
+                });
+            }
+            break;
         case 'arduino':
             this.tool = new Arduino(this.peripheral.path, config, this.userDataPath,
                 this.toolsPath, this.sendstd.bind(this), this.sendRemoteRequest.bind(this));
@@ -367,6 +400,24 @@ class SerialportSession extends Session {
         case 'arduino':
             this.tool = new Arduino(this.peripheral.path, params, this.userDataPath,
                 this.toolsPath, this.sendstd.bind(this));
+            try {
+                this.sendRemoteRequest('setUploadAbortEnabled', true);
+                this.sendstd(`${ansi.clear}Disconnect serial port\n`);
+                await this.disconnect();
+                this.sendstd(`${ansi.clear}Disconnected successfully, flash program starting...\n`);
+                const flashExitCode = await this.tool.flashRealtimeFirmware();
+                await this.connect(this.peripheralParams, true);
+                this.sendRemoteRequest('uploadSuccess', {aborted: flashExitCode === 'Aborted'});
+            } catch (err) {
+                this.sendRemoteRequest('uploadError', {
+                    message: ansi.red + err.message
+                });
+            }
+            break;
+        case 'coconut':
+            this.tool = new Coconut(this.peripheral.path, params, this.userDataPath,
+                this.toolsPath, this.sendstd.bind(this));
+            console.log(`tool= ${this.tool}`);
             try {
                 this.sendRemoteRequest('setUploadAbortEnabled', true);
                 this.sendstd(`${ansi.clear}Disconnect serial port\n`);

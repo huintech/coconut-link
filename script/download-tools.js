@@ -3,8 +3,10 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
-const user = 'OttawaSTEM';
-const repo = 'scratch-arduino-tools';
+// const user = 'OttawaSTEM';
+// const repo = 'scratch-arduino-tools';
+const user = 'huintech';
+const repo = 'coconut-tools';
 const outputdir = path.resolve('./tools');
 const leaveZipped = false;
 

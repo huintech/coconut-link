@@ -2,8 +2,10 @@ const downloadRelease = require('download-github-release');
 const path = require('path');
 const fs = require('fs');
 
-const user = 'OttawaSTEM';
-const repo = 'scratch-arduino-firmwares';
+// const user = 'OttawaSTEM';
+// const repo = 'scratch-arduino-firmwares';
+const user = 'huintech';
+const repo = 'coconut-firmwares';
 const outputdir = path.resolve('./firmwares');
 const leaveZipped = false;
 
